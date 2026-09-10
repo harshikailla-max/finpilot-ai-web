@@ -8,6 +8,8 @@ import '../providers/goal_provider.dart';
 import '../providers/budget_provider.dart';
 
 import '../widgets/ai_financial_orb.dart';
+import '../widgets/cosmic_background.dart';
+import '../widgets/glass_card.dart';
 
 import 'add_expense_screen.dart';
 import 'add_income_screen.dart';
@@ -50,35 +52,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isDesktop = screenWidth >= 950;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF05070D),
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: const Color(0xFF7C6CFF),
-          backgroundColor: const Color(0xFF111827),
-          onRefresh: () async {
-            await Future.delayed(const Duration(milliseconds: 500));
-            if (mounted) setState(() {});
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.symmetric(
-              horizontal: isDesktop ? 32 : 18,
-              vertical: 20,
-            ),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1400),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTopHeader(finance),
-                    const SizedBox(height: 24),
-                    if (isDesktop)
-                      _buildDesktopGrid(finance, goals, budgetProvider)
-                    else
-                      _buildMobileStack(finance, goals, budgetProvider),
-                    const SizedBox(height: 48),
-                  ],
+      backgroundColor: Colors.transparent,
+      body: CosmicBackground(
+        child: SafeArea(
+          child: RefreshIndicator(
+            color: const Color(0xFF7C6CFF),
+            backgroundColor: const Color(0xFF111827),
+            onRefresh: () async {
+              await Future.delayed(const Duration(milliseconds: 500));
+              if (mounted) setState(() {});
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 32 : 18,
+                vertical: 20,
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1400),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildTopHeader(finance),
+                      const SizedBox(height: 24),
+                      if (isDesktop)
+                        _buildDesktopGrid(finance, goals, budgetProvider)
+                      else
+                        _buildMobileStack(finance, goals, budgetProvider),
+                      const SizedBox(height: 48),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -308,19 +312,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     };
     final points = curveMap[_selectedFilterIndex] ?? curveMap[0]!;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C1220),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
+    return GlassCard(
+      borderRadius: 28,
+      padding: EdgeInsets.zero,
+      backgroundColor: const Color(0xFF080D1A).withValues(alpha: 0.76),
+      borderGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFF5FE1FF).withValues(alpha: 0.35),
+          const Color(0xFF7C6CFF).withValues(alpha: 0.20),
+          Colors.white.withValues(alpha: 0.06),
         ],
       ),
+      shadows: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.55),
+          blurRadius: 36,
+          offset: const Offset(0, 14),
+        ),
+        BoxShadow(
+          color: const Color(0xFF5FE1FF).withValues(alpha: 0.08),
+          blurRadius: 40,
+          spreadRadius: 2,
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -484,20 +500,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final expenses = finance.monthlyExpenses > 0 ? finance.monthlyExpenses : (finance.totalExpense > 0 ? finance.totalExpense : 35000.0);
     final foodEstimate = (expenses * 0.32).round();
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF7C6CFF).withValues(alpha: 0.3), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF7C6CFF).withValues(alpha: 0.08),
-            blurRadius: 24,
-            spreadRadius: 1,
-          ),
+      borderRadius: 24,
+      backgroundColor: const Color(0xFF0F1528).withValues(alpha: 0.72),
+      borderGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFF7C6CFF).withValues(alpha: 0.5),
+          const Color(0xFF5FE1FF).withValues(alpha: 0.3),
+          Colors.white.withValues(alpha: 0.05),
         ],
       ),
+      shadows: [
+        BoxShadow(
+          color: const Color(0xFF7C6CFF).withValues(alpha: 0.12),
+          blurRadius: 32,
+          spreadRadius: 2,
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -638,13 +660,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onCta = () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InvestmentScreen()));
     }
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: const Color(0xFF151D2D),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF48D597).withValues(alpha: 0.35), width: 1.2),
+      borderRadius: 24,
+      backgroundColor: const Color(0xFF0A181C).withValues(alpha: 0.72),
+      borderGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFF48D597).withValues(alpha: 0.5),
+          const Color(0xFF5FE1FF).withValues(alpha: 0.3),
+          Colors.white.withValues(alpha: 0.05),
+        ],
       ),
+      shadows: [
+        BoxShadow(
+          color: const Color(0xFF48D597).withValues(alpha: 0.10),
+          blurRadius: 32,
+          spreadRadius: 2,
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -830,17 +865,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
           itemBuilder: (context, index) {
             final c = cards[index];
             final accent = c['accent'] as Color;
-            return InkWell(
+            return GlassCard(
               onTap: c['onTap'] as VoidCallback,
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF111827),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+              borderRadius: 20,
+              padding: const EdgeInsets.all(16),
+              backgroundColor: const Color(0xFF090E1B).withValues(alpha: 0.70),
+              borderGradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  accent.withValues(alpha: 0.45),
+                  accent.withValues(alpha: 0.15),
+                  Colors.white.withValues(alpha: 0.04),
+                ],
+              ),
+              shadows: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6),
                 ),
-                child: Column(
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.06),
+                  blurRadius: 24,
+                  spreadRadius: 1,
+                ),
+              ],
+              child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -890,7 +941,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ],
                 ),
-              ),
             );
           },
         );
@@ -927,13 +977,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const Color(0xFF9B8CFF),
     ];
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      borderRadius: 24,
+      backgroundColor: const Color(0xFF090F1C).withValues(alpha: 0.72),
+      borderGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFF5FE1FF).withValues(alpha: 0.35),
+          const Color(0xFF7C6CFF).withValues(alpha: 0.20),
+          Colors.white.withValues(alpha: 0.05),
+        ],
       ),
+      shadows: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.45),
+          blurRadius: 30,
+          offset: const Offset(0, 8),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1062,13 +1125,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final pct = topGoal.targetAmount > 0 ? (topGoal.savedAmount / topGoal.targetAmount).clamp(0.0, 1.0) : 0.56;
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      borderRadius: 24,
+      backgroundColor: const Color(0xFF090E1B).withValues(alpha: 0.72),
+      borderGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFF7C6CFF).withValues(alpha: 0.40),
+          const Color(0xFF5FE1FF).withValues(alpha: 0.20),
+          Colors.white.withValues(alpha: 0.05),
+        ],
       ),
+      shadows: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.45),
+          blurRadius: 30,
+          offset: const Offset(0, 8),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1263,13 +1339,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildRecentActivityTimeline(FinanceProvider finance) {
     final recent = finance.transactions.take(5).toList();
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      borderRadius: 24,
+      backgroundColor: const Color(0xFF090E1B).withValues(alpha: 0.72),
+      borderGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFF5FE1FF).withValues(alpha: 0.35),
+          const Color(0xFF7C6CFF).withValues(alpha: 0.15),
+          Colors.white.withValues(alpha: 0.05),
+        ],
       ),
+      shadows: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.45),
+          blurRadius: 30,
+          offset: const Offset(0, 8),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1369,13 +1458,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // 10. AI COACH QUICK-LAUNCH BANNER
   // ============================================================
   Widget _buildAiCoachEntryBanner() {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF151D2D),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF7C6CFF).withValues(alpha: 0.35)),
+      borderRadius: 24,
+      backgroundColor: const Color(0xFF0E1326).withValues(alpha: 0.74),
+      borderGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFF7C6CFF).withValues(alpha: 0.55),
+          const Color(0xFF5FE1FF).withValues(alpha: 0.35),
+          Colors.white.withValues(alpha: 0.06),
+        ],
       ),
+      shadows: [
+        BoxShadow(
+          color: const Color(0xFF7C6CFF).withValues(alpha: 0.14),
+          blurRadius: 36,
+          spreadRadius: 2,
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1505,22 +1607,43 @@ class _HeroChartPainter extends CustomPainter {
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [fillColor, fillColor.withValues(alpha: 0.0)],
+        colors: [
+          const Color(0xFF00F2FE).withValues(alpha: 0.28),
+          const Color(0xFF4FACFE).withValues(alpha: 0.12),
+          const Color(0xFF7C6CFF).withValues(alpha: 0.0),
+        ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
     canvas.drawPath(fillPath, areaPaint);
 
-    final linePaint = Paint()
-      ..color = lineColor
-      ..strokeWidth = 2.5
+    // Glowing Neon Stroke
+    final glowLinePaint = Paint()
+      ..shader = const LinearGradient(
+        colors: [
+          Color(0xFF00E5FF),
+          Color(0xFF5FE1FF),
+          Color(0xFFB388FF),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..strokeWidth = 3.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-    canvas.drawPath(path, linePaint);
+    canvas.drawPath(path, glowLinePaint);
 
     final lastX = (points.length - 1) * stepX;
     final lastY = getY(points.last);
-    final dotPaint = Paint()..color = lineColor;
-    canvas.drawCircle(Offset(lastX, lastY), 4.5, dotPaint);
+
+    // Concentric Dreamy Pulsing Target Dots
+    final outerHaloPaint = Paint()
+      ..color = const Color(0xFF00E5FF).withValues(alpha: 0.22);
+    canvas.drawCircle(Offset(lastX, lastY), 12, outerHaloPaint);
+
+    final midHaloPaint = Paint()
+      ..color = const Color(0xFF5FE1FF).withValues(alpha: 0.45);
+    canvas.drawCircle(Offset(lastX, lastY), 7, midHaloPaint);
+
+    final centerDotPaint = Paint()..color = Colors.white;
+    canvas.drawCircle(Offset(lastX, lastY), 3.5, centerDotPaint);
   }
 
   @override

@@ -6,6 +6,8 @@ import '../providers/budget_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ai_financial_orb.dart';
 import '../widgets/ai_message_bubble.dart';
+import '../widgets/cosmic_background.dart';
+import '../widgets/glass_card.dart';
 import '../services/ai_financial_coach_service.dart';
 
 import 'goal_screen.dart';
@@ -239,9 +241,9 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: const Color(0xFF070B16).withValues(alpha: 0.8),
         elevation: 0,
         title: Row(
           children: [
@@ -304,72 +306,78 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Messages Area
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                itemCount: _messages.length + (_isThinking ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (_isThinking && index == _messages.length) {
-                    return const AiMessageBubble(
-                      message: '',
-                      isUser: false,
-                      isThinking: true,
+      body: CosmicBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Messages Area
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  itemCount: _messages.length + (_isThinking ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (_isThinking && index == _messages.length) {
+                      return const AiMessageBubble(
+                        message: '',
+                        isUser: false,
+                        isThinking: true,
+                      );
+                    }
+
+                    final msg = _messages[index];
+                    return AiMessageBubble(
+                      message: msg.text,
+                      isUser: msg.isUser,
+                      timestamp: msg.timestamp,
+                      actionButtons: _buildActionButtons(msg.actionTypes),
                     );
-                  }
-
-                  final msg = _messages[index];
-                  return AiMessageBubble(
-                    message: msg.text,
-                    isUser: msg.isUser,
-                    timestamp: msg.timestamp,
-                    actionButtons: _buildActionButtons(msg.actionTypes),
-                  );
-                },
+                  },
+                ),
               ),
-            ),
 
-            // Dynamic Suggestion Chips
-            Container(
-              height: 38,
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _defaultSuggestions.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final suggestion = _defaultSuggestions[index];
-                  return ActionChip(
-                    label: Text(
-                      suggestion,
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w500,
+              // Dynamic Suggestion Chips
+              Container(
+                height: 38,
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _defaultSuggestions.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final suggestion = _defaultSuggestions[index];
+                    return ActionChip(
+                      label: Text(
+                        suggestion,
+                        style: const TextStyle(
+                          color: Color(0xFFF0F4FF),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    backgroundColor: AppTheme.card,
-                    side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    onPressed: () => _handleUserQuery(suggestion),
-                  );
-                },
+                      backgroundColor: const Color(0xFF0F1629).withValues(alpha: 0.85),
+                      side: BorderSide(color: const Color(0xFF5FE1FF).withValues(alpha: 0.25)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      onPressed: () => _handleUserQuery(suggestion),
+                    );
+                  },
+                ),
               ),
-            ),
 
-            // Input Bar
-            Container(
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
-              decoration: BoxDecoration(
-                color: AppTheme.cardLight,
-                border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
-              ),
-              child: Column(
+              // Glass Input Bar
+              GlassCard(
+                borderRadius: 0,
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+                backgroundColor: const Color(0xFF0A0F20).withValues(alpha: 0.85),
+                borderGradient: LinearGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.12),
+                    const Color(0xFF5FE1FF).withValues(alpha: 0.18),
+                    const Color(0xFF7C6CFF).withValues(alpha: 0.12),
+                  ],
+                ),
+                child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
@@ -440,6 +448,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }

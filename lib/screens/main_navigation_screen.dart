@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -75,59 +76,78 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget _buildMobileLayout() {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _mobileScreens,
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _selectedIndex,
+            children: _mobileScreens,
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildMobileBottomNav(),
+          ),
+        ],
       ),
-      bottomNavigationBar: _buildMobileBottomNav(),
     );
   }
 
   Widget _buildMobileBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.card.withValues(alpha: 0.98),
-        border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.08), width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 24,
-            offset: const Offset(0, -6),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildMobileNavItem(
-                index: 0,
-                icon: Icons.dashboard_rounded,
-                label: 'HOME',
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF070B16).withValues(alpha: 0.82),
+            border: Border(
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.10), width: 1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.55),
+                blurRadius: 32,
+                offset: const Offset(0, -8),
               ),
-              _buildMobileNavItem(
-                index: 1,
-                icon: Icons.account_balance_wallet_rounded,
-                label: 'MONEY',
-              ),
-              // Central elevated AI Orb Button
-              _buildCentralAiButton(),
-              _buildMobileNavItem(
-                index: 3,
-                icon: Icons.flag_rounded,
-                label: 'GOALS',
-              ),
-              _buildMobileNavItem(
-                index: 4,
-                icon: Icons.person_rounded,
-                label: 'PROFILE',
+              BoxShadow(
+                color: const Color(0xFF7C6CFF).withValues(alpha: 0.08),
+                blurRadius: 40,
+                spreadRadius: 2,
               ),
             ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              height: 66,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildMobileNavItem(
+                    index: 0,
+                    icon: Icons.dashboard_rounded,
+                    label: 'HOME',
+                  ),
+                  _buildMobileNavItem(
+                    index: 1,
+                    icon: Icons.account_balance_wallet_rounded,
+                    label: 'MONEY',
+                  ),
+                  // Central elevated AI Orb Button
+                  _buildCentralAiButton(),
+                  _buildMobileNavItem(
+                    index: 3,
+                    icon: Icons.flag_rounded,
+                    label: 'GOALS',
+                  ),
+                  _buildMobileNavItem(
+                    index: 4,
+                    icon: Icons.person_rounded,
+                    label: 'PROFILE',
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -216,14 +236,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       backgroundColor: AppTheme.background,
       body: Row(
         children: [
-          // Permanent Luxury Sidebar
+          // Permanent Dreamy Luxury Sidebar
           Container(
             width: 260,
             decoration: BoxDecoration(
-              color: AppTheme.background2,
+              color: const Color(0xFF060914).withValues(alpha: 0.92),
               border: Border(
-                right: BorderSide(color: Colors.white.withValues(alpha: 0.08), width: 1),
+                right: BorderSide(color: const Color(0xFF5FE1FF).withValues(alpha: 0.12), width: 1),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 30,
+                  offset: const Offset(4, 0),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF7C6CFF).withValues(alpha: 0.04),
+                  blurRadius: 40,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
             child: SafeArea(
               child: Column(
