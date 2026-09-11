@@ -3,7 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/bank_statement_models.dart';
 import '../services/statement_parser_service.dart';
-import '../services/statement_ocr_service.dart';
+import '../services/statement_analysis_service.dart';
 import 'column_mapping_screen.dart';
 import 'bank_statement_review_screen.dart';
 
@@ -24,6 +24,8 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
 
   bool _isProcessing = false;
   String _statusText = '';
+  StatementAnalysisResult? _lastAnalysis;
+
 
   // ============================================================
   // IMPORT CSV
@@ -203,7 +205,7 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
       final List<PlatformFile> result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
-              );
+      );
 
       if (result.isEmpty) {
         return;
@@ -219,24 +221,24 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
 
       setState(() {
         _isProcessing = true;
-        _statusText = 'Extracting PDF text and transactions...';
+        _statusText = 'Extracting PDF intelligence & transactions...';
       });
 
-      try {
-        final parseResult = await StatementParserService.parsePdf(bytes);
+      final analysis = await StatementAnalysisService.analyzeStatement(
+        bytes: bytes,
+        fileName: file.name,
+      );
 
-        if (!mounted) return;
+      setState(() {
+        _lastAnalysis = analysis;
+      });
 
-        if (parseResult.transactions.isNotEmpty) {
-          await _navigateToReview(parseResult.transactions, file.name);
-          return;
-        }
-      } catch (pdfErr) {
-        // Fallback dialog if text parsing is uncertain
-        setState(() => _isProcessing = false);
-        if (!mounted) return;
-        _showPdfFallbackDialog(file.path);
-        return;
+      if (!mounted) return;
+
+      if (analysis.transactions.isNotEmpty) {
+        await _navigateToReview(analysis.transactions, file.name);
+      } else {
+        _showSnackbar('No transactions could be extracted from this PDF. You may also try CSV or Screenshot import.');
       }
     } catch (e) {
       _showSnackbar('PDF Import Error: $e');
@@ -250,42 +252,8 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
     }
   }
 
-  void _showPdfFallbackDialog(String? filePath) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: cardColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-          title: const Text('PDF Extraction Notice', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          content: const Text(
-            'FinPilot could not confidently extract tabular text from this PDF. It may be password-protected or a scanned image.\n\nWould you like to try scanning with OCR or import CSV instead?',
-            style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _importCsv();
-              },
-              child: const Text('Import CSV Instead', style: TextStyle(color: cyan)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _scanStatement();
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: purple),
-              child: const Text('Try OCR Scan', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   // ============================================================
-  // SCAN STATEMENT (OCR FOR SCANNED IMAGES)
+  // SCAN STATEMENT (SCREENSHOT / IMAGE INTELLIGENCE)
   // ============================================================
 
   Future<void> _scanStatement() async {
@@ -298,18 +266,35 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
 
       if (image == null) return;
 
+      final bytes = await image.readAsBytes();
+      if (bytes.isEmpty) {
+        _showSnackbar('Could not load image bytes.');
+        return;
+      }
+
       setState(() {
         _isProcessing = true;
-        _statusText = 'Running statement OCR recognition...';
+        _statusText = 'Analyzing statement screenshot with FinPilot AI...';
       });
 
-      final transactions = await StatementOcrService.parseStatementFromImage(image.path);
+      final analysis = await StatementAnalysisService.analyzeStatement(
+        bytes: bytes,
+        fileName: image.name,
+      );
+
+      setState(() {
+        _lastAnalysis = analysis;
+      });
 
       if (!mounted) return;
 
-      await _navigateToReview(transactions, 'Scanned Statement');
+      if (analysis.transactions.isNotEmpty) {
+        await _navigateToReview(analysis.transactions, 'Statement Screenshot');
+      } else {
+        _showSnackbar('No recognizable transaction entries found in the image.');
+      }
     } catch (e) {
-      _showSnackbar('Statement OCR Error: $e');
+      _showSnackbar('Statement Screenshot Analysis Error: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -446,8 +431,8 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
 
                   // Button 3: PDF
                   _importOptionTile(
-                    title: 'IMPORT PDF',
-                    subtitle: 'Standard e-statements from any bank',
+                    title: 'IMPORT PDF STATEMENT',
+                    subtitle: 'Native text or digital e-statements from any bank',
                     icon: Icons.picture_as_pdf_rounded,
                     badge: 'PDF',
                     color: red,
@@ -456,15 +441,78 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
 
                   const SizedBox(height: 14),
 
-                  // Button 4: SCAN STATEMENT
+                  // Button 4: STATEMENT SCREENSHOT / IMAGE
                   _importOptionTile(
-                    title: 'SCAN STATEMENT',
-                    subtitle: 'Scanned image statement or photo via AI OCR',
+                    title: 'STATEMENT SCREENSHOT / PHOTO',
+                    subtitle: 'UPI app screenshot, passbook photo, or bank slip',
                     icon: Icons.document_scanner_rounded,
-                    badge: 'AI OCR',
+                    badge: 'INTELLIGENCE',
                     color: purple,
                     onTap: _isProcessing ? null : _scanStatement,
                   ),
+
+                  if (_lastAnalysis != null) ...[
+                    const SizedBox(height: 25),
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            cardColor,
+                            purple.withValues(alpha: 0.15),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: purple.withValues(alpha: 0.35)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.auto_awesome, color: cyan, size: 20),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'LATEST STATEMENT INTELLIGENCE',
+                                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: cyan.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  _lastAnalysis!.formatType,
+                                  style: const TextStyle(color: cyan, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _lastAnalysis!.aiSummary,
+                            style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Extracted: ${_lastAnalysis!.totalCount} txns',
+                                style: const TextStyle(color: Colors.white60, fontSize: 11),
+                              ),
+                              TextButton(
+                                onPressed: () => _navigateToReview(_lastAnalysis!.transactions, _lastAnalysis!.fileName),
+                                child: const Text('Review Transactions →', style: TextStyle(color: cyan, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 25),
 

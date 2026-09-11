@@ -142,7 +142,7 @@ class _BankStatementReviewScreenState extends State<BankStatementReviewScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: CategoryService.standardCategories.contains(category) ? category : 'Other',
+                      initialValue: CategoryService.standardCategories.contains(category) ? category : 'Other',
                       dropdownColor: cardColor,
                       style: const TextStyle(color: Colors.white),
                       decoration: const InputDecoration(labelText: 'Category'),
